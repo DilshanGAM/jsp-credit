@@ -14,14 +14,35 @@ datasource db {
 }
 
 model User{
-  email String @id
+  email String? @unique
   name String
   phone String
-  password String
+  password String @default("$2a$12$RdUwAbGF35Xn8/wEAcG4Q.gADhB0LiLGDUKsaRrRkuCFafavKb0x2")
   address String
   role String @default("staff")
   createdAt DateTime @default(now())
   lastLogin DateTime @default(now())
-  nic String @unique
+  nic String @id
   status String @default("active")
+  loans Loan[] @relation("CustomerLoan")
+  issuedLoans Loan[] @relation("IssuedByLoan")
+}
+model Loan{
+  id Int @id @default(autoincrement())//
+  customerId String
+  customer User @relation("CustomerLoan", fields: [customerId], references: [nic])
+  amount Float
+  interestRate Float
+  durationDays Int
+  durationMonths Float
+  interestAmount Float
+  totalAmount Float
+  installmentAmount Float
+  paidAmount Float @default(0)//-----------------------------------
+  issuedDate DateTime//-----------------------------------
+  issuedBy String//-----------------------------------
+  issuedByUser User @relation("IssuedByLoan", fields: [issuedBy], references: [nic])
+  status String @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 }
