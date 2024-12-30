@@ -18,12 +18,13 @@ export default function AdminLoansPage() {
         const fetchLoans = async () => {
             const token = localStorage.getItem("token");
             axios
-                .get("/api/loan/all", {
+                .get("/api/loan", {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
                 })
                 .then((res) => {
+                    console.log(res);
                     setLoans(res.data);
                 })
                 .catch((err) => {
@@ -99,6 +100,8 @@ export default function AdminLoansPage() {
                         <TableHead>Amount</TableHead>
                         <TableHead>Interest Rate</TableHead>
                         <TableHead>Duration (Months)</TableHead>
+                        <TableHead>Duration (Days)</TableHead>
+                        <TableHead>Installment Amount</TableHead>
                         <TableHead>Total Amount</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Actions</TableHead>
@@ -109,8 +112,10 @@ export default function AdminLoansPage() {
                         <TableRow key={loan.id}>
                             <TableCell>{loan.customerId}</TableCell>
                             <TableCell>{loan.amount}</TableCell>
-                            <TableCell>{loan.interestRate}</TableCell>
+                            <TableCell>{loan.interestRate+"%"}</TableCell>
                             <TableCell>{loan.durationMonths}</TableCell>
+                            <TableCell>{loan.durationDays}</TableCell>
+                            <TableCell>{loan.installmentAmount}</TableCell>
                             <TableCell>{loan.totalAmount}</TableCell>
                             <TableCell>{loan.status}</TableCell>
                             <TableCell>

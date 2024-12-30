@@ -59,3 +59,28 @@ export async function POST(req: NextRequest) {
 		);
 	}
 }
+//get Loans
+export async function GET(req: NextRequest){
+	//check if the user is logged in
+	const user = req.headers.get("user");
+	if (!user) {
+		return NextResponse.json(
+			{ message: "You are not logged in. Please log in again and try." },
+			{ status: 403 }
+		);
+	}
+	//if user is staff manager or admin retrieve all loans
+	const userObj = JSON.parse(user);
+	if (userObj.role === "staff" || userObj.role === "manager" || userObj.role === "admin") {
+		const loans = await prisma.loan.findMany();
+		return NextResponse.json(loans, { status: 200 });
+	} else {
+		//return the loans with the user's NIC in customer ID
+		const loans = await prisma.loan.findMany({
+			where: {
+				customerId: userObj.nic,
+			},
+		});
+		return NextResponse.json(loans, { status: 200 });
+	}
+}

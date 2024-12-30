@@ -26,6 +26,8 @@ model User{
   status String @default("active")
   loans Loan[] @relation("CustomerLoan")
   issuedLoans Loan[] @relation("IssuedByLoan")
+  visits visit[] @relation("CollectorId")
+  managerVisits visit[] @relation("ManagerId")
 }
 model Loan{
   id Int @id @default(autoincrement())//
@@ -45,4 +47,17 @@ model Loan{
   status String @default("pending")
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
+}
+
+//visit
+model visit{
+  id Int @id @default(autoincrement())
+  startDateTime DateTime @default(now())
+  collectorId String
+  collector User @relation("CollectorId",fields: [collectorId], references: [nic])
+  endDateTime DateTime?
+  status String @default("started")
+  managerId String?
+  manager User? @relation("ManagerId",fields: [managerId], references: [nic])
+  notes String?
 }
