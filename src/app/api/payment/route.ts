@@ -4,7 +4,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
-	const collector = req.headers.get("user");
+	try{const collector = req.headers.get("user");
 	if (!collector) {
 		return NextResponse.json(
 			{ message: "You are not logged in. Please log in again and try." },
@@ -70,21 +70,6 @@ export async function POST(req: NextRequest) {
 				paidAmount: loan.paidAmount + data.amount,
 			},
 		});
-
-		//add the payment]
-		/*
-        model payment{
-  id Int @id @default(autoincrement())
-  loanId Int
-  loan Loan @relation(fields: [loanId], references: [id])
-  amount Float
-  visitId Int
-  visit visit @relation(fields: [visitId], references: [id])
-  paidDate DateTime @default(now())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-}
-        */
 		const payment = await prisma.payment.create({
             data:{
                 loanId: data.loanId,
@@ -110,5 +95,7 @@ export async function POST(req: NextRequest) {
             collectorName
         })
 
-	}
+	}}catch(e:any){
+        return NextResponse.json({message: e, error: e.message}, {status: 500})
+    }
 }
