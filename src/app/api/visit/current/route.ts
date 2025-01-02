@@ -24,6 +24,17 @@ export async function GET(req: NextRequest){
         }
     });
 
+    //check if there multiple visits started by the user
+    if(visits.length>1){
+        return NextResponse.json({ message: "You have multiple visits started. Please complete them before starting a new one." }, { status: 403 });
+    }
+
+    //check if array is empty
+    if(visits.length===0){
+        return NextResponse.json({ message: "No visit started by you. Please start one to collect payments" }, { status: 404 });
+    }
+
+
 
     return NextResponse.json(visits[0], { status: 200 });
 

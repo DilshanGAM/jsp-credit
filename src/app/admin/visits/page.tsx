@@ -33,7 +33,7 @@ export default function AdminVisitsPage() {
 			<h1 className="text-2xl font-bold">Active Visits</h1>
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 				{visits.map((visit) => (
-					<VisitCard key={visit.id} visit={visit} />
+					<VisitCard key={visit.id} visitId={visit.id} />
 				))}
 			</div>
 		</div>
