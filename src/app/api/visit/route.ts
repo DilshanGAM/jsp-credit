@@ -19,7 +19,8 @@ export async function POST(req: NextRequest){
     // Check if there any visits already started by the user
     const existingVisit = await prisma.visit.findFirst({
         where: {
-            collectorId: userObj.nic
+            collectorId: userObj.nic,
+            status: "started"
         }
     });
 
