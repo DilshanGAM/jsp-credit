@@ -116,7 +116,7 @@ export default function VisitCard({ visitId }: VisitCardProps) {
 						<DialogTitle>Visit Details</DialogTitle>
 					</DialogHeader>
 					{modalData && (
-						<div className="space-y-4">
+						<div className="space-y-4 h-screen overflow-y-scroll py-6">
 							<p><strong>Collector:</strong> {modalData.collector?.name || "N/A"}</p>
 							<p><strong>Manager:</strong> {modalData.manager?.name || "N/A"}</p>
 							<p><strong>Total Payments:</strong> {modalData.total}</p>
