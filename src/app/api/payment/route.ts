@@ -84,8 +84,18 @@ export async function POST(req: NextRequest) {
         const numberOfInstallemnts = Math.ceil(restPayment / loan.installmentAmount);
         const paidAmount = updatedLoan.paidAmount;
         const collectorName = collectorObj.name;
+		const customer = await prisma.user.findFirst({
+			where: {
+				nic: loan.customerId,
+			},
+		});
+
 
         return NextResponse.json({
+			customerId: loan.customerId,
+			customerName: customer?.name,
+			payment: data.amount,
+			recieptNumber: payment.id,
             restPayment,
             endDate,
             numberOfInstallemnts,
