@@ -84,3 +84,46 @@ export async function GET(req: NextRequest){
 		return NextResponse.json(loans, { status: 200 });
 	}
 }
+//delete loan and all related records
+//only admin can do this
+export async function DELETE(req: NextRequest){
+	//check if the user is logged in
+	const user = req.headers.get("user");
+	if (!user) {
+		return NextResponse.json(
+			{ message: "You are not logged in. Please log in again and try." },
+			{ status: 403 }
+		);
+	}
+	//if user is not admin return not authorized
+	const userObj = JSON.parse(user);
+	if (userObj.role !== "admin") {
+		return NextResponse.json(
+			{ message: "Only admins can delete loans" },
+			{ status: 403 }
+		);
+	}
+	//get the loan id from the url
+	const query = req.nextUrl.searchParams.get("id")||"";
+	//delete the loan
+	try {
+		const id:number = parseInt(query, 10);
+		//delete all payments related to the loan
+		await prisma.payment.deleteMany({
+			where:{
+				loanId:id
+			}
+		});
+		await prisma.loan.delete({
+			where:{
+				id:id
+			}
+		});
+		return NextResponse.json({ message: "Loan deleted" }, { status: 200 });
+	} catch (e:any) {
+		return NextResponse.json(
+			{ message: "Error deleting loan", error: e.message },
+			{ status: 500 }
+		);
+	}
+}

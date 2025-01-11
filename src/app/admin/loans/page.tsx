@@ -13,6 +13,7 @@ export default function AdminLoansPage() {
     const [loans, setLoans] = useState<LoanType[]>([]);
     const [editingLoan, setEditingLoan] = useState<LoanType | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [loansLoaded, setLoansLoaded] = useState(false);
 
     useEffect(() => {
         const fetchLoans = async () => {
@@ -26,14 +27,16 @@ export default function AdminLoansPage() {
                 .then((res) => {
                     console.log(res);
                     setLoans(res.data);
+                    setLoansLoaded(true);
                 })
                 .catch((err) => {
                     toast.error(err.response.data.message);
                 });
         };
-
-        fetchLoans();
-    }, []);
+        if (!loansLoaded){
+            fetchLoans();
+        }        
+    }, [loansLoaded]);
 
     const handleSave = async (loanData: LoanType) => {
         const token = localStorage.getItem("token");
@@ -67,14 +70,16 @@ export default function AdminLoansPage() {
     };
 
     const handleDelete = async (id: number) => {
+        const confirmation = confirm("Are you sure you want to delete this loan?");
+        if (!confirmation) return;
         const token = localStorage.getItem("token");
         try {
-            await axios.delete(`/api/loan/${id}`, {
+            await axios.delete(`/api/loan?id=${id}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            setLoans(loans.filter((loan) => loan.id !== id));
+            setLoansLoaded(false);
             toast.success("Loan deleted successfully");
         } catch (err) {
             toast.error("Failed to delete loan");
