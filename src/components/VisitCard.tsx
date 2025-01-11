@@ -139,12 +139,16 @@ export default function VisitCard({ visitId }: VisitCardProps) {
 									))}
 								</TableBody>
 							</Table>
-							<Button
+							{
+								!modalData.manager && 
+								<Button
 								className="mt-4 bg-red-600 text-white"
 								onClick={() => setIsVerifyDialogOpen(true)}
 							>
 								End Trip
 							</Button>
+							}
+							
 						</div>
 					)}
 				</DialogContent>

@@ -6,14 +6,14 @@ import { VisitType } from "@/types/visit";
 import VisitCard from "@/components/VisitCard";
 import toast from "react-hot-toast";
 
-export default function AdminAllVisitsPage() {
+export default function AdminVisitsPage() {
 	const [visits, setVisits] = useState<VisitType[]>([]);
 
 	useEffect(() => {
 		const fetchVisits = async () => {
 			const token = localStorage.getItem("token");
 			try {
-				const response = await axios.get("/api/visit/", {
+				const response = await axios.get("/api/visit/active", {
 					headers: {
 						Authorization: `Bearer ${token}`,
 					},

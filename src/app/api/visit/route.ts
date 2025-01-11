@@ -47,12 +47,16 @@ export async function GET(req: NextRequest){
 
     //check if the user is a staff manager or admin
     const userObj = JSON.parse(user);
-    if (!userObj.role || (userObj.role !== "admin" && userObj.role !== "manager" && userObj.role !== "staff")) {
-        return NextResponse.json({ message: "Only admins, managers and staff can start visits" }, { status: 403 });
+    if (!userObj.role || (userObj.role !== "admin" && userObj.role !== "manager" )) {
+        return NextResponse.json({ message: "Only admins and managers can view all the visits" }, { status: 403 });
     }
 
-    // Get all the visits
-    const visits = await prisma.visit.findMany();
+    // Get all the visits in decending order by id
+    const visits = await prisma.visit.findMany({
+        orderBy: {
+            id: "desc"
+        }
+    });
 
     return NextResponse.json(visits, { status: 200 });
 
