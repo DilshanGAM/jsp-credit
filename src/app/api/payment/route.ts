@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
 			recieptNumber: payment.id,
             restPayment,
             endDate,
-            numberOfInstallemnts,
+            numberOfInstallemnts:loan.durationDays,
             paidAmount,
             loanId: data.loanId,
             visitId: visit.id,
