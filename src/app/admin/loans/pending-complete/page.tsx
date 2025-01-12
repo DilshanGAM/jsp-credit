@@ -19,7 +19,7 @@ export default function AdminLoansPage() {
         const fetchLoans = async () => {
             const token = localStorage.getItem("token");
             axios
-                .get("/api/loan", {
+                .get("/api/loan/pending-complete", {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -64,26 +64,24 @@ export default function AdminLoansPage() {
         }
     };
 
-    const handleEdit = (loan: LoanType) => {
-        setEditingLoan(loan);
-        setIsDialogOpen(true);
-    };
-
-    const handleDelete = async (id: number) => {
-        const confirmation = confirm("Are you sure you want to delete this loan?");
-        if (!confirmation) return;
-        const token = localStorage.getItem("token");
-        try {
-            await axios.delete(`/api/loan?id=${id}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            setLoansLoaded(false);
-            toast.success("Loan deleted successfully");
-        } catch (err) {
-            toast.error("Failed to delete loan");
+    const handleLoanCompletion = (loan: LoanType) => {
+        if(confirm("Are you sure you want to mark this loan as completed?")){
+            const token = localStorage.getItem("token");
+            axios
+                .put(`/api/loan/pending-complete?id=${loan.id}`, {}, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                })
+                .then(() => {
+                    toast.success("Loan marked as completed");
+                    setLoansLoaded(false);
+                })
+                .catch((err) => {
+                    toast.error(err.response.data.message);
+                });
         }
+
     };
 
     return (
@@ -128,15 +126,7 @@ export default function AdminLoansPage() {
                             <TableCell>{loan.totalAmount}</TableCell>
                             <TableCell>{loan.status}</TableCell>
                             <TableCell>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button>Actions</Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
-                                        <DropdownMenuItem onClick={() => handleEdit(loan)}>Edit</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleDelete(loan.id)}>Delete</DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                                    <Button onClick={()=>handleLoanCompletion(loan)}>Mark Completed</Button>
                             </TableCell>
                         </TableRow>
                     ))}

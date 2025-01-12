@@ -19,7 +19,7 @@ export default function AdminLoansPage() {
         const fetchLoans = async () => {
             const token = localStorage.getItem("token");
             axios
-                .get("/api/loan", {
+                .get("/api/loan/completed", {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },

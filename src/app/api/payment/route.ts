@@ -81,7 +81,6 @@ export async function POST(req: NextRequest) {
         //create a json with rest payment, end date, total amount, paid amount loan id and visit id and collectors name
         const restPayment = loan.totalAmount - updatedLoan.paidAmount;
         const endDate = new Date(loan.issuedDate);
-        const numberOfInstallemnts = Math.ceil(restPayment / loan.installmentAmount);
         const paidAmount = updatedLoan.paidAmount;
         const collectorName = collectorObj.name;
 		const customer = await prisma.user.findFirst({
