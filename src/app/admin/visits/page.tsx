@@ -43,7 +43,7 @@ export default function AdminAllVisitsPage() {
 					<VisitCard key={visit.id} visitId={visit.id} />
 				))}
 			</div>
-			<Pager pageInfo={pageInfo} setPageInfo={setPageInfo} />
+			<Pager pageInfo={pageInfo} setPageInfo={setPageInfo} reloader={()=>{}} />
 		</div>
 
 	);

@@ -8,25 +8,32 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import LoanForm from "@/components/LoanForm";
 import LoanType from "@/types/loan";
+import Pager from "@/components/pager";
 
 export default function AdminLoansPage() {
     const [loans, setLoans] = useState<LoanType[]>([]);
     const [editingLoan, setEditingLoan] = useState<LoanType | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [loansLoaded, setLoansLoaded] = useState(false);
+    const [pageInfo, setPageInfo] = useState({
+        page: 1,
+        totalPages: 1,
+        limit: 10,
+    });
 
     useEffect(() => {
         const fetchLoans = async () => {
             const token = localStorage.getItem("token");
             axios
-                .get("/api/loan/completed", {
+                .get("/api/loan/completed?limit="+pageInfo.limit+"&page="+pageInfo.page, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
                 })
                 .then((res) => {
                     console.log(res);
-                    setLoans(res.data);
+                    setLoans(res.data.loans);
+                    setPageInfo(res.data.pageInfo);
                     setLoansLoaded(true);
                 })
                 .catch((err) => {
@@ -155,6 +162,7 @@ export default function AdminLoansPage() {
                     />
                 </DialogContent>
             </Dialog>
+            <Pager pageInfo={pageInfo} setPageInfo={setPageInfo} reloader={()=>{setLoansLoaded(false)}} />
         </div>
     );
 }
