@@ -22,7 +22,9 @@ export default function LoginPage() {
             localStorage.setItem("token", res.data.token);
             if(res.data.user.role === "admin"){
                 router.push("/admin/");
-            }
+            }else if(res.data.user.role === "manager"){
+				router.push("/admin/");
+			}
         }
         ).catch((err) => {
             toast.error(err.response.data.message);

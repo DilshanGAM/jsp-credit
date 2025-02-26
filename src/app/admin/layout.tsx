@@ -13,6 +13,8 @@ import {
 	FaMoneyCheckAlt,
 	FaRegCalendarCheck,
 } from "react-icons/fa";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export default function AdminLayout({
 	children,
@@ -21,6 +23,7 @@ export default function AdminLayout({
 }>) {
     const [userLoaded, setUserLoaded] = useState(false);
     const [user, setUser] = useState<UserType|null>(null);
+	const [isDialogOpen, setIsDialogOpen] = useState(false);
     const router = useRouter();
     const pathName = usePathname();
 
@@ -95,16 +98,42 @@ export default function AdminLayout({
 						<span className="font-medium">Visits</span>
 					</Link>
 				</div>
-				<div className="h-[60px] bg-white flex items-center justify-center">
+				<div className="h-[60px] bg-white flex items-center justify-center cursor-pointer" onClick={()=>{
+					setIsDialogOpen(true);
+				}}>
 					<span className="text-xl font-bold text-blueGreen dark:text-white cursor-pointer">
 						Logout
 					</span>
 				</div>
 			</div>
 			<div className="w-[calc(100%-300px)] max-h-screen overflow-y-scroll ">
-
 				{userLoaded?children:<div className="h-screen flex items-center justify-center"><div className=" border-[3px] border-t-blueGreen w-24 rounded-full animate-spin h-24"></div></div>}
 			</div>
+			<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+				<DialogContent className="">
+					<DialogHeader>
+						<DialogTitle>Logout</DialogTitle>
+					</DialogHeader>
+					<div className="space-y-4  py-6">
+						<p>Are you sure you want to logout?</p>
+						<div className="flex justify-end space-x-2">
+							<Button className="bg-red-500 text-white" onClick={()=>{
+								localStorage.removeItem("token");
+								router.push("/login");
+							}}>
+								Logout
+							</Button>
+							<Button className="bg-blueGreen text-white" onClick={()=>{
+								setIsDialogOpen(false);
+							}}>
+								Cancel
+							</Button>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
+			
+
 		</div>
 	);
 }

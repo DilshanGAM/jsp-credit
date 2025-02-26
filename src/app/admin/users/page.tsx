@@ -23,6 +23,8 @@ export default function AdminUsersPage() {
     });
     const [editingUser, setEditingUser] = useState<UserType | null>(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [passwordChangeDialogOpen, setPasswordChangeDialogOpen] = useState(false);
+    const [passwordChangingEmail, setPasswordChangingEmail] = useState("");
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -135,6 +137,10 @@ export default function AdminUsersPage() {
                                     <DropdownMenuContent>
                                         <DropdownMenuItem onClick={() => handleEdit(user)}>Edit</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleDelete(user.email)}>Delete</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => {
+                                            setPasswordChangingEmail(user.email);
+                                            setPasswordChangeDialogOpen(true);
+                                        }}>Change Password</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>
@@ -230,6 +236,63 @@ export default function AdminUsersPage() {
                     </div>
                 </DialogContent>
             </Dialog>
+            <PasswordChangeDialog email={passwordChangingEmail} isOpen={passwordChangeDialogOpen} onClose={()=>setPasswordChangeDialogOpen(false)} />
+            
         </div>
     );
+}
+
+function PasswordChangeDialog({ email, isOpen, onClose }: { email: string; isOpen: boolean; onClose: () => void }) {
+    const [password,setPassword] = useState("");
+    const [confirmPassword,setConfirmPassword] = useState("");
+    const [loading,setLoading] = useState(false);
+
+    return(
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Change Password For {email}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                    <div>
+                        <Label htmlFor="password">Password</Label>
+                        <Input
+                            id="password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="confirmPassword">Confirm Password</Label>
+                        <Input
+                            id="confirmPassword"
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                        />
+                    </div>
+                    <Button className="bg-blueGreen text-white w-full" onClick={()=>{
+                        setLoading(true);
+                        const token = localStorage.getItem("token");
+                        axios.post("/api/user/changePassword",{email,password,confirmPassword} , {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                            },
+                        }).then(()=>{
+                            toast.success("Password changed successfully");
+                            onClose();
+                        }).catch((err)=>{
+                            toast.error(err.response.data.message);
+                        }).finally(()=>{
+                            setLoading(false);
+                        }
+                        );
+                    }} disabled={loading}>
+                        {loading?"Changing...":"Change Password"}
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
+    )
 }
