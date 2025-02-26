@@ -44,6 +44,18 @@ export async function GET(req: NextRequest){
     if (!user) {
         return NextResponse.json({ message: "You are not logged in. Please log in again and try." }, { status: 403 });
     }
+    ///get page number from the query
+    const pageData = req.nextUrl.searchParams.get("page") || 1;
+    const limitData = req.nextUrl.searchParams.get("limit") || 10;
+
+    const page = Number(pageData);
+    const limit = Number(limitData);
+    if (isNaN(page) || isNaN(limit)) {
+        return NextResponse.json({ message: "Invalid page or limit" }, { status: 400 });
+    }
+
+    const total = await prisma.visit.count();
+    const totalPages = Math.ceil(total / limit);
 
     //check if the user is a staff manager or admin
     const userObj = JSON.parse(user);
@@ -53,11 +65,18 @@ export async function GET(req: NextRequest){
 
     // Get all the visits in decending order by id
     const visits = await prisma.visit.findMany({
+        take: limit,
+        skip: (page - 1) * limit,
         orderBy: {
             id: "desc"
         }
     });
 
-    return NextResponse.json(visits, { status: 200 });
+    return NextResponse.json({visits , pageInfo : {
+        page,
+        limit,
+        total,
+        totalPages
+    }},  { status: 200 });
 
 }
