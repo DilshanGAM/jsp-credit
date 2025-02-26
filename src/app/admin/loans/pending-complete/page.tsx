@@ -109,6 +109,7 @@ export default function AdminLoansPage() {
                         <TableHead>Paid Amount</TableHead>
                         <TableHead>Total Amount</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
                         <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -125,6 +126,7 @@ export default function AdminLoansPage() {
                             <TableCell>{loan.paidAmount}</TableCell>
                             <TableCell>{loan.totalAmount}</TableCell>
                             <TableCell>{loan.status}</TableCell>
+                            <TableCell>{new Date(loan.issuedDate).toLocaleDateString()}</TableCell>
                             <TableCell>
                                     <Button onClick={()=>handleLoanCompletion(loan)}>Mark Completed</Button>
                             </TableCell>
