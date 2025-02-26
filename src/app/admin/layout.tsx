@@ -60,7 +60,7 @@ export default function AdminLayout({
 				</div>
 				<div className="flex flex-1 flex-col items-start justify-start pt-10">
 					<Link
-						href="/admin/dashboard"
+						href="/admin/"
 						className="text-white flex items-center px-4 py-2 mb-4 w-full hover:bg-baseGreen transition-all"
 					>
 						<FaHome className="mr-3" />
