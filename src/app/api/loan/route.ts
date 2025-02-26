@@ -84,6 +84,9 @@ export async function GET(req: NextRequest){
 		const loans = await prisma.loan.findMany({
 			skip: (page - 1) * limit,
 			take: limit,
+			orderBy:{
+				issuedDate:"desc"
+			}
 		});
 		return NextResponse.json({ loans, pageInfo : {
 			page,

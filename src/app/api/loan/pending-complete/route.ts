@@ -23,6 +23,9 @@ export async function GET(req: NextRequest){
 					gte:prisma.loan.fields.totalAmount
 				},
 				status:"active"
+			},
+			orderBy:{
+				issuedDate:"desc"
 			}
 		});
 		return NextResponse.json(loans, { status: 200 });

@@ -39,6 +39,9 @@ export async function GET(req: NextRequest){
             take: limit,
             where:{
                 status:"completed"
+            },
+            orderBy:{
+                issuedDate:"desc"
             }
         });
         return NextResponse.json({ loans, pageInfo : {
