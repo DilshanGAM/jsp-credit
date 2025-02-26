@@ -37,10 +37,10 @@ export default function LoginPage() {
 			<div className="w-1/2 h-screen flex items-center justify-center flex-col">
 				<Image
 					alt=""
-					src="/logo.png"
+					src="/final-logo.png"
 					height={1000}
 					width={1000}
-					className="w-[250px] h-[250px]"
+					className="w-[250px] h-[250px] "
 				/>
 				<BlurIn
 					word="JSP Credit"
