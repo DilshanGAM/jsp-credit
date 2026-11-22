@@ -1,152 +1,83 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import axios from "axios";
+
+import { useState } from "react";
+import { CircleCheck, Lock } from "lucide-react";
 import toast from "react-hot-toast";
-import LoanForm from "@/components/LoanForm";
-import LoanType from "@/types/loan";
+import { useSession } from "@/components/admin/session-context";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { DataTable, Primary } from "@/components/shared/data-table";
+import { EmptyState } from "@/components/shared/feedback";
+import { Panel } from "@/components/shared/page";
+import { Button } from "@/components/ui/button";
+import { api, errorMessage } from "@/lib/api";
+import { formatDate, formatMoney } from "@/lib/format";
+import { useResource } from "@/lib/use-resource";
+import type LoanType from "@/types/loan";
+import type { UserType } from "@/types/user";
 
-export default function AdminLoansPage() {
-    const [loans, setLoans] = useState<LoanType[]>([]);
-    const [editingLoan, setEditingLoan] = useState<LoanType | null>(null);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [loansLoaded, setLoansLoaded] = useState(false);
+export default function ReadyToClosePage() {
+	const { isAdmin } = useSession();
+	const { data, error, loading, reload } = useResource<LoanType[]>(isAdmin ? "/loan/pending-complete" : null);
+	const customers = useResource<UserType[]>(isAdmin ? "/user/customers" : null);
+	const [closing, setClosing] = useState<LoanType | null>(null);
 
-    useEffect(() => {
-        const fetchLoans = async () => {
-            const token = localStorage.getItem("token");
-            axios
-                .get("/api/loan/pending-complete", {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                })
-                .then((res) => {
-                    console.log(res);
-                    setLoans(res.data);
-                    setLoansLoaded(true);
-                })
-                .catch((err) => {
-                    toast.error(err.response.data.message);
-                });
-        };
-        if (!loansLoaded){
-            fetchLoans();
-        }        
-    }, [loansLoaded]);
+	if (!isAdmin) {
+		return (
+			<Panel>
+				<EmptyState icon={Lock} title="Administrators only" description="Only administrators can close loans." />
+			</Panel>
+		);
+	}
 
-    const handleSave = async (loanData: LoanType) => {
-        const token = localStorage.getItem("token");
-        try {
-            if (editingLoan) {
-                await axios.put(`/api/loan/`, loanData, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                toast.success("Loan updated successfully");
-            } else {
-                const result = await axios.post("/api/loan", loanData, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                console.log(result);
-                toast.success("Loan added successfully");
-            }
-            setIsDialogOpen(false);
-            setEditingLoan(null);
-        } catch (err) {
-            toast.error("Failed to save loan");
-        }
-    };
+	const nameOf = (nic: string) => customers.data?.find((c) => c.nic === nic)?.name ?? nic;
 
-    const handleLoanCompletion = (loan: LoanType) => {
-        if(confirm("Are you sure you want to mark this loan as completed?")){
-            const token = localStorage.getItem("token");
-            axios
-                .put(`/api/loan/pending-complete?id=${loan.id}`, {}, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                })
-                .then(() => {
-                    toast.success("Loan marked as completed");
-                    setLoansLoaded(false);
-                })
-                .catch((err) => {
-                    toast.error(err.response.data.message);
-                });
-        }
+	async function complete() {
+		if (!closing) return;
+		try {
+			await api.put(`/loan/pending-complete?id=${closing.id}`, {});
+			toast.success("Loan completed");
+			setClosing(null);
+			reload();
+		} catch (e) {
+			toast.error(errorMessage(e, "Couldn't complete the loan."));
+		}
+	}
 
-    };
-
-    return (
-        <div className="p-6">
-            <h1 className="text-2xl font-bold mb-4">Loan Management</h1>
-            <Button
-                className="mb-4 bg-blueGreen text-white"
-                onClick={() => {
-                    setEditingLoan(null);
-                    setIsDialogOpen(true);
-                }}
-            >
-                Add Loan
-            </Button>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Customer ID</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Interest Rate</TableHead>
-                        <TableHead>Duration (Months)</TableHead>
-                        <TableHead>Duration (Days)</TableHead>
-                        <TableHead>Installment Amount</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Paid Amount</TableHead>
-                        <TableHead>Total Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Actions</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {loans.map((loan) => (
-                        <TableRow key={loan.id}>
-                            <TableCell>{loan.customerId}</TableCell>
-                            <TableCell>{loan.amount}</TableCell>
-                            <TableCell>{loan.interestRate+"%"}</TableCell>
-                            <TableCell>{loan.durationMonths}</TableCell>
-                            <TableCell>{loan.durationDays}</TableCell>
-                            <TableCell>{loan.installmentAmount}</TableCell>
-                            <TableCell>{loan.amount}</TableCell>
-                            <TableCell>{loan.paidAmount}</TableCell>
-                            <TableCell>{loan.totalAmount}</TableCell>
-                            <TableCell>{loan.status}</TableCell>
-                            <TableCell>{new Date(loan.issuedDate).toLocaleDateString()}</TableCell>
-                            <TableCell>
-                                    <Button onClick={()=>handleLoanCompletion(loan)}>Mark Completed</Button>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>{editingLoan ? "Edit Loan" : "Add Loan"}</DialogTitle>
-                    </DialogHeader>
-                    <LoanForm
-                        initialData={editingLoan}
-                        onSave={handleSave}
-                        onCancel={() => setIsDialogOpen(false)}
-                    />
-                </DialogContent>
-            </Dialog>
-        </div>
-    );
+	return (
+		<>
+			<Panel>
+				<DataTable
+					label="Loans ready to close"
+					rows={data}
+					rowKey={(loan) => loan.id}
+					loading={loading}
+					error={error}
+					onRetry={reload}
+					columns={[
+						{ header: "Customer", cell: (loan) => <Primary title={nameOf(loan.customerId)} subtitle={`Loan #${loan.id} · ${loan.customerId}`} /> },
+						{ header: "Total repayable", align: "right", cell: (loan) => formatMoney(loan.totalAmount) },
+						{ header: "Paid", align: "right", cell: (loan) => formatMoney(loan.paidAmount) },
+						{ header: "Issued", cell: (loan) => formatDate(loan.issuedDate) },
+					]}
+					actions={(loan) => (
+						<Button size="sm" onClick={() => setClosing(loan)}>
+							<CircleCheck aria-hidden />
+							Complete
+						</Button>
+					)}
+					empty={<EmptyState icon={CircleCheck} title="Nothing to close" description="Fully paid loans appear here for your approval." />}
+				/>
+			</Panel>
+			<ConfirmDialog
+				open={!!closing}
+				onClose={() => setClosing(null)}
+				onConfirm={complete}
+				title={`Complete loan #${closing?.id ?? ""}?`}
+				description={
+					closing && `${nameOf(closing.customerId)} has paid ${formatMoney(closing.paidAmount)} of ${formatMoney(closing.totalAmount)}.`
+				}
+				confirmLabel="Mark completed"
+			/>
+		</>
+	);
 }

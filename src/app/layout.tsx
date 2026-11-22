@@ -1,36 +1,31 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "JSP Credit",
-  description: "Reliable solutions for every finance requirement",
+	title: { default: "JSP Credit", template: "%s | JSP Credit" },
+	description: "Reliable solutions for every finance requirement",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <Toaster position="top-right"/>
-        {children}
-      </body>
-    </html>
-  );
+export const viewport: Viewport = { themeColor: "#0b2429" };
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+	return (
+		<html lang="en" className={inter.variable}>
+			<body>
+				{children}
+				<Toaster
+					position="top-right"
+					toastOptions={{
+						className: "!rounded-lg !border !border-border !bg-card !text-sm !text-foreground",
+						duration: 4000,
+						error: { duration: 6000 },
+					}}
+				/>
+			</body>
+		</html>
+	);
 }

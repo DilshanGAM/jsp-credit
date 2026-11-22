@@ -1,5 +1,5 @@
 export interface UserType{
-    email : string;
+    email : string|null;
     name : string;
     phone : string;
     address : string;
