@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
 			userObj.role === "staff"
 		) {
 			const foundUser = await prisma.user.findFirst({
+				omit: { password: true },
 				where: {
 					nic: nic,
 				},

@@ -13,6 +13,7 @@ export async function GET(req:NextRequest){
         if(userObj.role === "admin"||userObj.role === "manager"){
             const usersList = await prisma.user.findMany({
                 take:10,
+                omit:{password:true},
                 where:{
                     OR:[
                         {

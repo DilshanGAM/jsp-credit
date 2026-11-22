@@ -38,8 +38,9 @@ export async function POST(request: NextRequest) {
             }
         });
         return NextResponse.json({ message: "Password updated successfully" });
-    } catch (e: any) {
-        return NextResponse.json({ message: e.message }, { status: 500 });
+    } catch {
+        // not the Prisma message: it quotes the query, including the new hash
+        return NextResponse.json({ message: "Failed to update password" }, { status: 500 });
     }
 
 }
