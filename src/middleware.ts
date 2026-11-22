@@ -4,11 +4,18 @@ import * as jose from 'jose';
 
 
 export async function middleware( req : NextRequest ) {
+    // "user" is internal: it is set below from a verified token and trusted by every route,
+    // so a request that arrives with one is forged.
+    if(req.headers.has("user")){
+        return NextResponse.json({ message: "The user header is not allowed" }, { status: 403 });
+    }
+
     try{
       //check if there is a token in the request header
       const token = req.headers.get("Authorization");
 
       if(token){
+          // The Android app's customer search sends the token without "Bearer ", so both forms must work.
           const user = await jose.jwtVerify(token.replace("Bearer ",""),new TextEncoder().encode(process.env.JOSE_SECRET));
           
           if(user){
