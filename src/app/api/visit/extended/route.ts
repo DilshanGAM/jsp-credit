@@ -41,6 +41,7 @@ export async function GET(req: NextRequest) {
 	}
 
 	const collector = await prisma.user.findUnique({
+		omit: { password: true },
 		where: {
 			nic: visit.collectorId,
 		},
@@ -49,6 +50,7 @@ export async function GET(req: NextRequest) {
 	var manager = null;
 	if (visit.managerId) {
 		manager = await prisma.user.findUnique({
+			omit: { password: true },
 			where: {
 				nic: visit.managerId,
 			},

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { hideQueryArgs } from "@/lib/prisma-errors";
 const prisma = new PrismaClient();
 
 export function GET(req: NextRequest) {
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
 					nic: newUser.nic,
 					status: "active",
 				},
-			});
+			}).catch(hideQueryArgs);
 			return NextResponse.json({ message: "Account created" }, { status: 201 });
 		} else if (userObj.role === "manager") {
 			if (newUser.role === "staff") {
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
 						nic: newUser.nic,
 						status: "active",
 					},
-				});
+				}).catch(hideQueryArgs);
 				return NextResponse.json(
 					{ message: "Account created" },
 					{ status: 201 }
@@ -89,7 +90,7 @@ export async function POST(req: NextRequest) {
 					nic: newUser.nic,
 					status: "active",
 				},
-			});
+			}).catch(hideQueryArgs);
 			return NextResponse.json({ message: "Account created" }, { status: 201 });
 		} else {
 			return NextResponse.json(

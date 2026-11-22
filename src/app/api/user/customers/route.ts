@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { hideQueryArgs } from "@/lib/prisma-errors";
 
 const prisma = new PrismaClient();
 
@@ -11,6 +12,7 @@ export async function GET(req: NextRequest) {
 		const userObj = JSON.parse(user);
 		if (userObj.role === "admin" || userObj.role === "manager") {
 			const customerList = await prisma.user.findMany({
+				omit: { password: true },
 				where: {
 					role: "customer",
 				},
@@ -45,6 +47,7 @@ export async function POST(req: NextRequest) {
 			const newCustomer = await req.json();
             const hashedPassword = await bcrypt.hash("123", 10);
 			const customer = await prisma.user.create({
+				omit: { password: true },
 				data: {
 					email: newCustomer.email,
 					password: "123",
@@ -55,7 +58,7 @@ export async function POST(req: NextRequest) {
 					nic: newCustomer.nic,
 					status: "active",
 				},
-			});
+			}).catch(hideQueryArgs);
 			return NextResponse.json(customer, { status: 201 });
 		} else {
 			return NextResponse.json(
@@ -73,7 +76,20 @@ export async function PUT(req: NextRequest) {
         const userObj = JSON.parse(user);
         if (userObj.role === "admin" || userObj.role === "manager") {
             const updatedCustomer = await req.json();
+            if (userObj.role === "manager") {
+                const target = await prisma.user.findUnique({
+                    where: { email: updatedCustomer.email },
+                    select: { role: true },
+                });
+                if (target && target.role !== "customer") {
+                    return NextResponse.json(
+                        { message: "Managers can only update customer accounts" },
+                        { status: 403 }
+                    );
+                }
+            }
             const customer = await prisma.user.update({
+                omit: { password: true },
                 where: {
                     email: updatedCustomer.email,
                 },

@@ -14,23 +14,23 @@ export async function GET(req:NextRequest){
         const userObj = JSON.parse(user) as UserType;
         if(userObj.role === "admin"){
             const usersList = await prisma.user.findMany({
+                omit:{password:true},
                 where:{
                     role:{
                         not:"customer"
                     }
                 }
             });
-            console.log(usersList);
             return NextResponse.json(usersList);
         }else if(userObj.role === "manager"){
             const usersList = await prisma.user.findMany({
+                omit:{password:true},
                 where:{
                     role:{
                         notIn:["customer","admin"]
                     }
                 }
             });
-            console.log(usersList);
             return NextResponse.json(usersList);
         }else{
             return NextResponse.json({message:"Not Authorized"},{status:403});
