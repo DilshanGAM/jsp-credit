@@ -1,0 +1,2 @@
+# Backups contain customer data and password hashes
+/backups/
