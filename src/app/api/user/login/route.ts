@@ -7,6 +7,10 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
 	//get the email and password from the request body
 	const { email, password } = await req.json();
+	//anything but a string would act as a query filter (undefined matches every user)
+	if (typeof email !== "string") {
+		return NextResponse.json({ message: "User not found" }, { status: 404 });
+	}
 	//find the user in the database
 	const user = await prisma.user.findFirst({
 		where: {

@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // stops `next dev` from writing its own agent instructions into the repo
+  agentRules: false,
 };
 
 export default nextConfig;
