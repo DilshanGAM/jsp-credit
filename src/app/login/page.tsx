@@ -1,102 +1,110 @@
-"use client"
-import Image from "next/image";
-import "./login.css";
-import BlurIn from "@/components/ui/blur-in";
-import TypingAnimation from "@/components/ui/typing-animation";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { Label } from "@/components/ui/label";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import axios from "axios";
-import toast from "react-hot-toast";
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ArrowLeft, CircleAlert } from "lucide-react";
+import { Brand, Logo } from "@/components/shared/brand";
+import { Field } from "@/components/shared/field";
+import { PasswordInput } from "@/components/shared/password-input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { api, errorMessage, session } from "@/lib/api";
+
+const canUsePortal = (role: string) => role === "admin" || role === "manager";
+
+const REASONS: Record<string, string> = {
+	expired: "Your session has ended or couldn't be verified. Please sign in again.",
+	role: "This portal is for administrators and managers. Collection officers should use the mobile app.",
+};
+
 export default function LoginPage() {
+	const router = useRouter();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-    const router = useRouter();
+	const [notice, setNotice] = useState<string | null>(null);
+	const [busy, setBusy] = useState(false);
+	// Until React is ready a click would submit the form natively and silently clear it.
+	const [ready, setReady] = useState(false);
 
-	const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-        axios.post("/api/user/login", { email, password }).then((res) => {
-            localStorage.setItem("token", res.data.token);
-            if(res.data.user.role === "admin"){
-                router.push("/admin/");
-            }else if(res.data.user.role === "manager"){
-				router.push("/admin/");
+	useEffect(() => {
+		setReady(true);
+		setNotice(REASONS[new URLSearchParams(window.location.search).get("reason") ?? ""] ?? null);
+		if (!session.get()) return;
+		api
+			.get("/user")
+			.then(({ data }) => {
+				if (canUsePortal(data.role)) router.replace("/admin");
+			})
+			.catch(() => {}); // not signed in: stay on the form
+	}, [router]);
+
+	async function signIn(event: React.FormEvent) {
+		event.preventDefault();
+		setNotice(null);
+		setBusy(true);
+		try {
+			const { data } = await api.post("/user/login", { email, password });
+			if (!canUsePortal(data.user.role)) {
+				setNotice(REASONS.role);
+				setBusy(false);
+				return;
 			}
-        }
-        ).catch((err) => {
-            toast.error(err.response.data.message);
-        }
-        );
-	};
+			session.set(data.token);
+			router.push("/admin");
+		} catch (e) {
+			setNotice(errorMessage(e, "Couldn't sign you in. Please try again."));
+			setBusy(false);
+		}
+	}
 
 	return (
-		<div className="login-bg flex">
-			<div className="w-1/2 h-screen flex items-center justify-center flex-col">
-				<Image
-					alt=""
-					src="/final-logo.png"
-					height={1000}
-					width={1000}
-					className="w-[250px] h-[250px] "
-				/>
-				<BlurIn
-					word="JSP Credit"
-					className="text-4xl font-bold text-blueGreen dark:text-white"
-				/>
-				<TypingAnimation className="text-baseGreen text-[19px]">
-					Reliable solutions for every finance requirement
-				</TypingAnimation>
-			</div>
-			<div className="w-1/2 h-screen flex items-center justify-center backdrop-blur-lg">
-				<Card className="w-[400px] p-6">
-					<CardHeader>
-						<h1 className="text-xl font-bold text-center mb-4">Login</h1>
-					</CardHeader>
-					<CardContent>
-						<form onSubmit={handleLogin}>
-							<div className="mb-4">
-								<Label htmlFor="email" className="block text-sm font-medium">
-									Email Address
-								</Label>
-								<Input
-									id="email"
-									type="email"
-									placeholder="Enter your email"
-									value={email}
-									onChange={(e) => setEmail(e.target.value)}
-									className="mt-1 block w-full"
-								/>
-							</div>
+		<div className="grid min-h-dvh lg:grid-cols-2">
+			<aside className="hidden flex-col justify-between bg-brand p-10 text-brand-foreground lg:flex">
+				<Brand onDark />
+				<div>
+					<span className="inline-flex rounded-2xl bg-card p-6">
+						<Logo priority className="h-36" />
+					</span>
+					<p className="mt-8 max-w-md text-balance text-3xl font-semibold leading-snug text-white">
+						Reliable solutions for every finance requirement
+					</p>
+					<p className="mt-3 max-w-md">Loans, customers and field collections, managed in one place.</p>
+				</div>
+				<p className="text-sm">For authorized staff only</p>
+			</aside>
 
-							<div className="mb-4">
-								<Label htmlFor="password" className="block text-sm font-medium">
-									Password
-								</Label>
-								<Input
-									id="password"
-									type="password"
-									placeholder="Enter your password"
-									value={password}
-									onChange={(e) => setPassword(e.target.value)}
-									className="mt-1 block w-full"
-								/>
-							</div>
+			<main className="flex flex-col bg-card p-6 sm:p-10">
+				<Link href="/" className="inline-flex items-center gap-2 self-start text-sm font-medium text-muted-foreground hover:text-foreground">
+					<ArrowLeft className="size-4" aria-hidden />
+					Back to home
+				</Link>
+				<div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">
+					<Logo priority className="mb-8 h-20 self-start lg:hidden" />
+					<h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
+					<p className="mt-1 text-sm text-muted-foreground">Use your JSP Credit staff account.</p>
 
-							
+					{notice && (
+						<div role="alert" className="mt-6 flex gap-2 rounded-md bg-danger p-3 text-sm text-danger-foreground">
+							<CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
+							{notice}
+						</div>
+					)}
 
-							<Button
-								type="submit"
-								className="w-full bg-blueGreen text-white py-2"
-							>
-								Login
-							</Button>
-						</form>
-					</CardContent>
-				</Card>
-			</div>
+					<form method="post" onSubmit={signIn} className="mt-6 space-y-4">
+						<Field id="email" label="Email address">
+							<Input type="email" autoComplete="username" autoFocus required value={email} onChange={(e) => setEmail(e.target.value)} />
+						</Field>
+						<Field id="password" label="Password">
+							<PasswordInput autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+						</Field>
+						<Button type="submit" size="lg" className="w-full" loading={busy} disabled={!ready || busy}>
+							Sign in
+						</Button>
+					</form>
+					<p className="mt-6 text-sm text-muted-foreground">Forgot your password? Ask an administrator to reset it.</p>
+				</div>
+			</main>
 		</div>
 	);
 }
