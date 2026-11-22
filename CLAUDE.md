@@ -24,7 +24,7 @@ node scripts/db-copy/copy-db.mjs   # overwrite the local DB with a copy of anoth
 
 - There is no test suite or test runner.
 - There is no linter. Use the type check instead.
-- Node 22 (pinned in `engines`, which Vercel honors). Prisma is deliberately on 6.x: 7 needs a configuration and driver migration.
+- Node 22 (pinned in `engines`, which Vercel honors). Prisma is deliberately on 6.x: 7 needs a configuration and driver migration. The `overrides` in package.json patch advisories in `@prisma/config` and can be removed once Prisma is upgraded past them.
 - `.env` needs `DATABASE_URL` and `JOSE_SECRET` (HS256 signing key for JWTs).
 
 ## Auth
@@ -75,7 +75,7 @@ The collectors' Kotlin app (`../jsp-staff` on the owner's machine) calls product
   - `/api/loan`, `/api/loan/completed` and `/api/visit` return `{<items>, pageInfo: {page, limit, total, totalPages}}`.
   - Most other lists return bare arrays.
   - The loan list routes return a bare, unpaginated array of the *caller's own* loans, not a 403, to roles without list access. For `completed` and `pending-complete` that is everyone except admin, and the status filter is dropped.
-- User queries have no `select`, so responses built from whole `User` rows include the password hash.
+- Any `User` query whose result is returned or logged needs `omit: { password: true }`. Writes of a password need `.catch(hideQueryArgs)` (`src/lib/prisma-errors.ts`) or their own catch that doesn't expose `e.message`, because Prisma errors quote the query's arguments.
 - Several handlers have branches that return no response (e.g. no `user` header, or a payment with no open visit).
 - Paginated pages use `src/components/pager.tsx`. The loan pages refetch by resetting a `loansLoaded` flag through `reloader`, while the visits page refetches on `pageInfo.page` and passes a no-op.
 - `VisitCard` fetches `/api/visit/extended` itself, so visit lists make one request per card.
