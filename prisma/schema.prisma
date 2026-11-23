@@ -75,3 +75,19 @@ model payment{
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 }
+
+// Saved analytics dashboards, shared by all admins and managers. Added without touching other tables:
+// createdBy and updatedBy hold NICs with no foreign key, so the User model is unchanged.
+model DashboardLayout {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  config    Json
+  isDefault Boolean  @default(false)
+  version   Int      @default(1)
+  createdBy String
+  updatedBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  @@map("dashboard_layout")
+}
