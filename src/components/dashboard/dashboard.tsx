@@ -85,11 +85,14 @@ export function Dashboard() {
 
 	// Which layout to open: the one used last on this device, else the shared default.
 	useEffect(() => {
-		if (!list.data || selected !== null) return;
+		if (selected !== null) return;
+		// Without saved layouts (e.g. the table isn't migrated yet) the standard layout still works.
+		if (list.error) return setSelected(BUILT_IN);
+		if (!list.data) return;
 		const last = recalled();
 		const pick = list.data.find((l) => l.id === last) ?? list.data.find((l) => l.isDefault) ?? list.data[0];
 		setSelected(pick?.id ?? BUILT_IN);
-	}, [list.data, selected]);
+	}, [list.data, list.error, selected]);
 
 	const open = useCallback(async (id: number) => {
 		setLoadError(null);
@@ -229,10 +232,10 @@ export function Dashboard() {
 	}
 
 	// The measured element must exist from the first render, or the grid never learns its width.
-	if (list.error) return <div ref={containerRef}><ErrorState message={list.error} onRetry={list.reload} /></div>;
-	if (!list.data || selected === null) return <div ref={containerRef}><LoadingState label="Loading dashboard" /></div>;
+	const layoutsUnavailable = !!list.error;
+	if (selected === null) return <div ref={containerRef}><LoadingState label="Loading dashboard" /></div>;
 
-	const layouts = list.data;
+	const layouts = list.data ?? [];
 	const ordered = [...config.widgets].sort((a, b) => a.y - b.y || a.x - b.x);
 	const ctx = { ...range, isAdmin };
 	const frame = (w: Widget) => (
@@ -254,7 +257,7 @@ export function Dashboard() {
 				title="Dashboard"
 				description={`Welcome back, ${user.name}. Figures are in Sri Lanka time.`}
 				actions={
-					editing ? (
+					layoutsUnavailable ? null : editing ? (
 						<>
 							<Button variant="outline" onClick={() => setAdding(true)}>
 								<Plus aria-hidden />
@@ -306,7 +309,7 @@ export function Dashboard() {
 						))}
 					</NativeSelect>
 					<DropdownMenu modal={false}>
-						<DropdownMenuTrigger asChild>
+						<DropdownMenuTrigger asChild disabled={layoutsUnavailable}>
 							<Button variant="ghost" size="icon" aria-label="Layout options">
 								<MoreHorizontal aria-hidden />
 							</Button>
@@ -348,6 +351,14 @@ export function Dashboard() {
 				<ClearFilters value={config.filters} onChange={setFilters} />
 			</div>
 
+			{layoutsUnavailable && (
+				<div role="alert" className="mb-4 flex flex-wrap items-center gap-3 rounded-md bg-warning px-3 py-2 text-sm text-warning-foreground">
+					Saved layouts can&apos;t be loaded right now, so the standard layout is shown and changes can&apos;t be saved.
+					<Button variant="outline" size="sm" onClick={list.reload}>
+						Try again
+					</Button>
+				</div>
+			)}
 			{record && (
 				<p className="-mt-2 mb-4 text-xs text-muted-foreground">
 					{dirty ? "Unsaved changes. " : ""}Last saved by {record.updatedByName} on {new Date(record.updatedAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}.

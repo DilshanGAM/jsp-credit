@@ -29,7 +29,7 @@ function DataGrid({ table, label }: { table: TableData; label: string }) {
 				<thead className="sticky top-0 bg-card">
 					<tr className="border-b">
 						{table.columns.map((c) => (
-							<th key={c.key} scope="col" className={cn("whitespace-nowrap px-3 py-2 text-xs font-semibold text-muted-foreground", c.kind && c.kind !== "text" && c.kind !== "date" && c.kind !== "datetime" ? "text-right" : "text-left")}>
+							<th key={c.key} scope="col" className={cn("whitespace-nowrap px-2 py-2 text-xs font-semibold text-muted-foreground", c.kind && c.kind !== "text" && c.kind !== "date" && c.kind !== "datetime" ? "text-right" : "text-left")}>
 								{c.label}
 							</th>
 						))}
@@ -42,7 +42,7 @@ function DataGrid({ table, label }: { table: TableData; label: string }) {
 								const text = formatCell(row[c.key], c.kind);
 								const numeric = c.kind && c.kind !== "text" && c.kind !== "date" && c.kind !== "datetime";
 								return (
-									<td key={c.key} className={cn("px-3 py-2", numeric ? "whitespace-nowrap text-right tabular-nums" : "min-w-24")}>
+									<td key={c.key} className={cn("px-2 py-2", numeric ? "whitespace-nowrap text-right tabular-nums" : "min-w-24")}>
 										{c.href ? (
 											<Link href={c.href(row)} className="font-medium text-primary hover:underline">
 												{text}
@@ -110,7 +110,7 @@ export function WidgetFrame({ widget, range, filters, ctx, editing, onSettings, 
 
 	return (
 		<section aria-label={title} className={cn("flex h-full min-w-0 flex-col overflow-hidden rounded-lg border bg-card", editing && "ring-1 ring-primary/30")}>
-			<header className="flex items-start gap-1 border-b px-3 py-2">
+			<header className="flex items-start gap-1 border-b px-2 py-2">
 				{editing && (
 					<span className="widget-drag -ml-1 flex size-8 shrink-0 cursor-grab items-center justify-center rounded text-muted-foreground hover:bg-muted active:cursor-grabbing" title="Drag to move" aria-hidden>
 						<GripVertical className="size-4" />
