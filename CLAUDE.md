@@ -20,6 +20,7 @@ npx prisma migrate deploy # apply existing migrations
 npm run prisma:seed       # create the initial admin; fails if it already exists
 
 node scripts/db-copy/copy-db.mjs   # overwrite the local DB with a copy of another (settings in .env.db-copy)
+node scripts/check-paid-amounts.mjs # read-only: loans whose paidAmount differs from their payments
 ```
 
 - There is no test suite or test runner.
@@ -64,7 +65,7 @@ The collectors' Kotlin app (`../jsp-staff` on the owner's machine) calls product
 - **Prisma model casing is mixed**: `User` and `Loan`, but lowercase `visit` and `payment`. Table names match, so renaming a model requires a migration.
 - **Visit lifecycle**: a collector opens a visit (`started`, one at a time). Each payment attaches to the caller's open visit, never to a visit id from the request. An admin or manager confirms the cash through `/api/visit/verify`, which sets `ended`, `managerId` and `notes`. `endDateTime` is never written.
 - **Loan lifecycle**: created as `active`, despite the schema default of `pending`. Reaching `paidAmount >= totalAmount` does not change the status: the loan appears under "pending-complete" (a query, not a status) until an admin sets it to `completed`.
-- **`Loan.paidAmount` is denormalized** from `payment` rows. `POST /api/payment` updates both in separate writes without a transaction. Any new code that changes payments must maintain it.
+- **`Loan.paidAmount` is denormalized** from `payment` rows. `POST /api/payment` updates both in one transaction with a database-side `increment`; any new code that changes payments must do the same. Older data can be off (see `scripts/check-paid-amounts.mjs`).
 - **Loan math** is simple interest: `total = amount + amount * rate% * durationMonths` and `installment = total / durationDays`. Months and days are independent inputs. `src/lib/loan-math.ts` calculates total and installment (and back-solves rate or days when those are edited). The server stores them as sent and recomputes only `interestAmount`, so a formula change touches both `src/lib/loan-math.ts` and `src/app/api/loan/route.ts`.
 - `updatedAt` columns have no `@updatedAt` and are never updated. Money is stored as `Float`.
 

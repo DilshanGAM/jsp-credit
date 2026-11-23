@@ -128,17 +128,19 @@ export async function DELETE(req: NextRequest){
 	//delete the loan
 	try {
 		const id:number = parseInt(query, 10);
-		//delete all payments related to the loan
-		await prisma.payment.deleteMany({
-			where:{
-				loanId:id
-			}
-		});
-		await prisma.loan.delete({
-			where:{
-				id:id
-			}
-		});
+		//delete the loan and its payments together, so a failure can't leave one without the other
+		await prisma.$transaction([
+			prisma.payment.deleteMany({
+				where:{
+					loanId:id
+				}
+			}),
+			prisma.loan.delete({
+				where:{
+					id:id
+				}
+			}),
+		]);
 		return NextResponse.json({ message: "Loan deleted" }, { status: 200 });
 	} catch (e:any) {
 		return NextResponse.json(

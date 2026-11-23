@@ -52,31 +52,43 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		//add paid amonunt to the loan number and edit it
-		const loan = await prisma.loan.findFirst({
-			where: {
-				id: data.loanId,
-			},
+		if (Number(data.amount) < 0) {
+			return NextResponse.json(
+				{ message: "Amount must be greater than zero" },
+				{ status: 400 }
+			);
+		}
+
+		// One transaction, and the database does the addition: otherwise simultaneous
+		// payments overwrite each other, and a failed insert leaves paidAmount already raised.
+		const result = await prisma.$transaction(async (tx) => {
+			const loan = await tx.loan.findFirst({
+				where: {
+					id: data.loanId,
+				},
+			});
+			if (!loan) return null;
+			const updatedLoan = await tx.loan.update({
+				where: {
+					id: data.loanId,
+				},
+				data: {
+					paidAmount: { increment: data.amount },
+				},
+			});
+			const payment = await tx.payment.create({
+				data: {
+					loanId: data.loanId,
+					amount: data.amount,
+					visitId: visit.id,
+				},
+			});
+			return { loan, updatedLoan, payment };
 		});
-		if (!loan) {
+		if (!result) {
 			return NextResponse.json({ message: "Loan not found" }, { status: 404 });
 		}
-		//update loan
-		const updatedLoan = await prisma.loan.update({
-			where: {
-				id: data.loanId,
-			},
-			data: {
-				paidAmount: loan.paidAmount + data.amount,
-			},
-		});
-		const payment = await prisma.payment.create({
-            data:{
-                loanId: data.loanId,
-                amount: data.amount,
-                visitId: visit.id
-            }
-        })
+		const { loan, updatedLoan, payment } = result;
 
         //create a json with rest payment, end date, total amount, paid amount loan id and visit id and collectors name
         const restPayment = loan.totalAmount - updatedLoan.paidAmount;
