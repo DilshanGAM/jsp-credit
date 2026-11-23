@@ -80,7 +80,17 @@ The collectors' Kotlin app (`../jsp-staff` on the owner's machine) calls product
 - Several handlers have branches that return no response (e.g. no `user` header, or a payment with no open visit).
 - `VisitTable` fetches `/api/visit/extended` for each row, as the list routes have no names or totals.
 - There is no API to edit a loan or delete a user, so the UI offers neither.
-- The summary route compares with `lte`, so send end-of-day ISO timestamps, not bare dates.
+- The old summary route (`/api/summary`, no longer used by the UI) compares with `lte`, so send end-of-day ISO timestamps, not bare dates.
+
+## Analytics dashboard
+
+The admin home page (`src/components/dashboard/`) is a grid of widgets that users can drag, resize and configure, saved as shared layouts.
+
+- `GET /api/analytics?metric=…&from=&to=` (admin and manager, read-only) serves every widget. Metric SQL is in `src/lib/analytics/metrics.ts`, whose header defines the rules: Sri Lanka calendar days, exact decimal sums, installments due daily from the day after issue, "as of" figures at the end of the range, and closed loans excluded from the open portfolio. `METRICS` in `definitions.ts` lists which filters each metric honours, and the UI shows the rest as ignored.
+- `/api/dashboard-layouts` stores layouts in the `dashboard_layout` table, shared and editable by every admin and manager. Saves send the `version` they loaded, and a stale save gets 409. `parseConfig` in `src/lib/analytics/layout.ts` validates layouts on both server and client.
+- Both new routes use `requirePortalUser` (`src/lib/server-auth.ts`) and the shared Prisma client. They were added without changing any existing table or endpoint; keep it that way.
+- The metrics were verified to the cent against an independent calculation on randomized data. Any change to a metric needs the same kind of check.
+- Chart colors are the three in `SERIES` (`charts.tsx`), validated for colour-blind separation and contrast. Don't add a fourth without re-validating.
 
 ## Code conventions
 

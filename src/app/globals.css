@@ -63,3 +63,14 @@
 		}
 	}
 }
+
+/* Dashboard grid: the library's placeholder is red by default. */
+.dashboard-grid .react-grid-item.react-grid-placeholder {
+	@apply rounded-lg bg-primary opacity-15;
+}
+.dashboard-grid .react-grid-item > .react-resizable-handle::after {
+	border-color: hsl(var(--muted-foreground));
+}
+.dashboard-grid .react-grid-item > .react-resizable-handle {
+	opacity: 1;
+}
