@@ -78,6 +78,8 @@ export function Dashboard() {
 
 	const saved = record ? safeConfig(record.config) : DEFAULT_CONFIG;
 	const dirty = !same(config, saved);
+	// Only unsaved widget changes warn before leaving; a changed filter is not worth a prompt.
+	const widgetsChanged = JSON.stringify(config.widgets) !== JSON.stringify(saved.widgets);
 	// The grid needs room for 12 columns; narrower screens get a stacked, read-only view.
 	const wide = mounted && width >= 1000;
 
@@ -112,11 +114,11 @@ export function Dashboard() {
 	}, [selected, open]);
 
 	useEffect(() => {
-		if (!dirty) return;
+		if (!widgetsChanged) return;
 		const warn = (e: BeforeUnloadEvent) => e.preventDefault();
 		window.addEventListener("beforeunload", warn);
 		return () => window.removeEventListener("beforeunload", warn);
-	}, [dirty]);
+	}, [widgetsChanged]);
 
 	const range = useMemo(() => resolveRange(config.filters), [config.filters]);
 	const rangeValid = range.from <= range.to;
